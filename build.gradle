@@ -1,0 +1,30 @@
+group "azadev.backt"
+version "0.7"
+
+buildscript {
+	// http://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-gradle-plugin
+	// https://plugins.jetbrains.com/plugin/6954-kotlin
+	ext.kotlin_version = "1.1.2"
+
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+	}
+}
+
+apply plugin: "kotlin"
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+	compile "azadev.logging:kotlog:1.0"
+
+	// http://mvnrepository.com/artifact/junit/junit
+	testCompile "junit:junit:4.12"
+}
