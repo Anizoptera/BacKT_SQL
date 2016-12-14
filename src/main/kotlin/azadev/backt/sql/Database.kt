@@ -1,6 +1,7 @@
 package azadev.backt.sql
 
 import java.sql.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 
 /**
@@ -49,9 +50,11 @@ import java.sql.*
  * }
  */
 
-class Database()
+class Database
 {
 	lateinit var connection: Connection
+
+	val statements = ConcurrentLinkedQueue<Statement>()
 
 
 	fun connect(url: String, user: String, password: String) {
@@ -59,7 +62,21 @@ class Database()
 	}
 
 	fun close() {
+		closeStatements()
 		connection.close()
+	}
+
+	/**
+	 * Closes all the open statements and clears the statement list.
+	 *
+	 * Note that this method is NOT thread safe. Don't call this method
+	 * and any 'execute*' methods simultaneously from different threads.
+	 * This may lead to leak of unclosed statements.
+	 */
+	fun closeStatements() {
+		for (s in statements)
+			s.close()
+		statements.clear()
 	}
 
 
@@ -69,6 +86,7 @@ class Database()
 		for (i in params.indices)
 			stmt.setObject(i+1, params[i])
 
+		statements.add(stmt)
 		return stmt.executeQuery()
 	}
 
@@ -78,6 +96,7 @@ class Database()
 		for (i in params.indices)
 			stmt.setObject(i+1, params[i])
 
+		statements.add(stmt)
 		return stmt.executeUpdate()
 	}
 
@@ -90,6 +109,7 @@ class Database()
 		if (stmt.executeUpdate() <= 0)
 			return null
 
+		statements.add(stmt)
 		return stmt.generatedKeys
 	}
 
