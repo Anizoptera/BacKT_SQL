@@ -1,6 +1,7 @@
 package azadev.backt.sql
 
 import java.sql.*
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -57,8 +58,11 @@ class Database
 	val statements = ConcurrentLinkedQueue<Statement>()
 
 
-	fun connect(url: String, user: String, password: String) {
-		connection = DriverManager.getConnection(url, user, password)
+	fun connect(url: String, user: String? = null, password: String? = null) {
+		val props = Properties()
+		if (user != null) props.put("user", user)
+		if (password != null) props.put("password", password)
+		connection = DriverManager.getConnection(url, props)
 	}
 
 	fun close() {
@@ -147,7 +151,7 @@ class Database
 			Class.forName(driver)
 		}
 
-		fun createConnection(url: String, user: String, password: String): Database {
+		fun createConnection(url: String, user: String? = null, password: String? = null): Database {
 			val db = Database()
 			db.connect(url, user, password)
 			return db
