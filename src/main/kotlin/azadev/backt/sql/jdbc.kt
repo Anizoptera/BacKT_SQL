@@ -87,3 +87,80 @@ fun makeValueSet(vararg values: Any): String {
 
 	return sb.toString()
 }
+
+
+/**
+ * Escapes special characters in a string for use as a literal in SQL statements.
+ *
+ * The method doesn't use RegExps and doesn't create any redundant objects,
+ * to provide better performance and memory efficiency.
+ *
+ * https://dev.mysql.com/doc/refman/5.7/en/string-literals.html
+ */
+fun String.escapeSqlLiteral(): String {
+	var i = -1
+	val len = length
+	var sb: StringBuilder? = null
+
+	while (++i < len) {
+		val char = get(i)
+		val esc = char.escapeSqlLiteral()
+		if (esc != null) {
+			if (sb == null)
+				sb = if (i > 0) StringBuilder(take(i)) else StringBuilder()
+
+			sb.append(esc)
+		}
+		else if (sb != null)
+			sb.append(char)
+	}
+
+	return sb?.toString() ?: this
+}
+
+/**
+ * Returns an escaped String or 'null' if this Char is not needed to be escaped.
+ * https://dev.mysql.com/doc/refman/5.7/en/string-literals.html
+ */
+fun Char.escapeSqlLiteral(): String? {
+	// https://dev.mysql.com/doc/refman/5.7/en/string-literals.html
+	return when (this) {
+		'\'' -> "\\'"
+		'"' -> "\\\""
+		'\n' -> "\\n"
+		'\r' -> "\\r"
+		'\t' -> "\\t"
+		'\\' -> "\\\\"
+		'%' -> "\\%"
+		'_' -> "\\_"
+		else -> null
+	}
+}
+
+/**
+ * Escapes special characters in a string for use as an identifier in SQL statements.
+ *
+ * The method doesn't use RegExps and doesn't create any redundant objects,
+ * to provide better performance and memory efficiency.
+ *
+ * https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
+ */
+fun String.escapeSqlIdentifier(): String {
+	var i = -1
+	val len = length
+	var sb: StringBuilder? = null
+
+	while (++i < len) {
+		val char = get(i)
+		if (char == '`') {
+			if (sb == null)
+				sb = if (i > 0) StringBuilder(take(i)) else StringBuilder()
+
+			sb.append("``")
+		}
+		else if (sb != null)
+			sb.append(char)
+	}
+
+	return sb?.toString() ?: this
+}

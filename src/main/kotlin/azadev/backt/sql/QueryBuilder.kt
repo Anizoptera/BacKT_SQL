@@ -45,70 +45,98 @@ class QueryBuilder
 	}
 
 
-	fun selectAll(): QueryBuilder {
-		sb.append("SELECT *")
-		return this
-	}
-	fun select(col: String): QueryBuilder {
-		sb.append("SELECT ").appendQuoted(col)
+	fun select(col: String = "*"): QueryBuilder {
+		if (col == "*")
+			sb.append("SELECT *")
+		else
+			sb.append("SELECT ").appendIdentifier(col)
+
 		return this
 	}
 	fun select(vararg cols: String): QueryBuilder {
 		sb.append("SELECT ")
 		cols.forEachIndexed { i,col ->
 			if (i > 0) sb.append(',')
-			sb.appendQuoted(col)
+			sb.appendIdentifier(col)
 		}
 		return this
 	}
 
 
 	fun from(table: String): QueryBuilder {
-		sb.append(" FROM ").appendQuoted(table)
+		sb.append(" FROM ").appendIdentifier(table)
 		return this
 	}
 
 
-	fun where(col: String, value: Any?) = where0(col, '=', value)
-	fun wherep(col: String, param: Any?) = where0(col, '=', '?').p(param)
-	fun whereNull(col: String) = where0(col, " IS ", "NULL")
+	fun where(col: String, value: Any) = where0(col, '=', value)
+	fun wherep(col: String, param: Any) = where0(col, "=?").p(param)
 
-	fun whereGt(col: String, value: Any?) = where0(col, '>', value)
-	fun wherepGt(col: String, param: Any?) = where0(col, '>', '?').p(param)
+	fun whereNot(col: String, value: Any) = where0(col, "<>", value)
+	fun wherepNot(col: String, param: Any) = where0(col, "<>?").p(param)
 
-	fun whereLt(col: String, value: Any?) = where0(col, '<', value)
-	fun wherepLt(col: String, param: Any?) = where0(col, '<', '?').p(param)
+	fun whereNull(col: String): QueryBuilder {
+		where0(col)
+		sb.append(" IS NULL")
+		return this
+	}
+	fun whereNotNull(col: String): QueryBuilder {
+		where0(col)
+		sb.append(" IS NOT NULL")
+		return this
+	}
 
-	fun whereNot(col: String, value: Any?) = where0(col, "<>", value)
-	fun wherepNot(col: String, param: Any?) = where0(col, "<>", '?').p(param)
-	fun whereNotNull(col: String) = where0(col, " IS NOT ", "NULL")
+	fun whereGt(col: String, value: Any) = where0(col, '>', value)
+	fun wherepGt(col: String, param: Any) = where0(col, ">?").p(param)
+
+	fun whereLt(col: String, value: Any) = where0(col, '<', value)
+	fun wherepLt(col: String, param: Any) = where0(col, "<?").p(param)
+
+	fun whereBetween(col: String, min: Any, max: Any): QueryBuilder {
+		where0(col)
+		sb.append(" BETWEEN ").appendLiteral(min).append(" AND ").appendLiteral(max)
+		return this
+	}
+	fun wherepBetween(col: String, min: Any, max: Any): QueryBuilder {
+		return where0(col, " BETWEEN ? AND ?").p(min).p(max)
+	}
+
+	fun whereNotBetween(col: String, min: Any, max: Any): QueryBuilder {
+		where0(col)
+		sb.append(" NOT BETWEEN ").appendLiteral(min).append(" AND ").appendLiteral(max)
+		return this
+	}
+	fun wherepNotBetween(col: String, min: Any, max: Any): QueryBuilder {
+		return where0(col, " NOT BETWEEN ? AND ?").p(min).p(max)
+	}
 
 	fun whereIn(col: String, values: Any): QueryBuilder {
-		where0(col, false, " IN (")
-		smartAppendJoined(values)
-		sb.append(')')
+		where0(col)
+		sb.append(" IN (").appendJoined(values).append(')')
 		return this
 	}
-	fun wherepIn(col: String, param: Any?): QueryBuilder {
-		whereIn(col, '?').p(param)
+	fun whereNotIn(col: String, values: Any): QueryBuilder {
+		where0(col)
+		sb.append(" NOT IN (").appendJoined(values).append(')')
 		return this
 	}
 
-	private fun where0(col: String, eq: Any, value: Any?): QueryBuilder {
+	private fun where0(col: String, eq: Any? = null, value: Any? = null): QueryBuilder {
 		if (!hasWhere) {
 			sb.append(" WHERE ")
 			hasWhere = true
 		}
 		else sb.append(" AND ")
 
-		sb.appendQuoted(col)
+		sb.appendIdentifier(col)
 
 		when (eq) {
 			is Char -> sb.append(eq)
 			is String -> sb.append(eq)
 		}
 
-		smartAppend(value)
+		if (value != null)
+			sb.appendLiteral(value)
 
 		return this
 	}
@@ -121,7 +149,7 @@ class QueryBuilder
 		}
 		else sb.append(',')
 
-		sb.appendQuoted(col)
+		sb.appendIdentifier(col)
 
 		if (desc)
 			sb.append(" DESC")
@@ -136,40 +164,50 @@ class QueryBuilder
 	}
 
 
-	private fun StringBuilder.appendQuoted(col: String)
-			= append('`').append(col).append('`')
+	private fun StringBuilder.appendIdentifier(name: String)
+			= append('`').append(name.escapeSqlIdentifier()).append('`')
 
-	private fun smartAppend(value: Any?) {
-		// Common types (to avoid "toString" insude StringBuilder)
-		when (value) {
-			is Boolean -> sb.append(if (value) 1 else 0)
+	private fun StringBuilder.appendLiteral(value: Any): StringBuilder {
+		// Common types (to avoid "toString" inside StringBuilder)
+		return when (value) {
+			is Boolean -> append(if (value) 1 else 0)
 
-			is Long -> sb.append(value)
-			is Int -> sb.append(value)
-			is Short -> sb.append(value)
-			is Byte -> sb.append(value)
-			is Double -> sb.append(value)
-			is Float -> sb.append(value)
+			is Long -> append(value)
+			is Int -> append(value)
+			is Short -> append(value)
+			is Byte -> append(value)
+			is Double -> append(value)
+			is Float -> append(value)
 
-			is String -> sb.append(value) // Avoid adding String directly. Use placeholder '?'
-			is Char -> sb.append(value)
+			is String -> append('\'').append(value.escapeSqlLiteral()).append('\'')
 
-			else -> sb.append(value)
+			is Char -> append('\'').apply {
+				val esc = value.escapeSqlLiteral()
+				if (esc != null) append(esc)
+				else append(value)
+			}.append('\'')
+
+			else -> appendLiteral(value.toString())
 		}
 	}
 
-	private fun smartAppendJoined(values: Any) {
+	private fun StringBuilder.appendJoined(values: Any): StringBuilder {
 		var i = -1
 		when (values) {
 			is Array<*> -> values.forEach {
-				if (++i > 0) sb.append(',')
-				smartAppend(it)
+				if (it != null) {
+					if (++i > 0) sb.append(',')
+					appendLiteral(it)
+				}
 			}
 			is Iterable<*> -> values.forEach {
-				if (++i > 0) sb.append(',')
-				smartAppend(it)
+				if (it != null) {
+					if (++i > 0) sb.append(',')
+					appendLiteral(it)
+				}
 			}
-			else -> smartAppend(values)
+			else -> appendLiteral(values)
 		}
+		return this
 	}
 }
