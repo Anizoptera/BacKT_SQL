@@ -6,8 +6,9 @@ import java.sql.ResultSet
 import java.util.*
 
 
-class QueryBuilder
-{
+class QueryBuilder(
+		val quoteIdentifiers: Boolean = true
+) {
 	val sb = StringBuilder(15) // SELECT * FROM t
 
 	var params: ArrayList<Any?>? = null
@@ -164,8 +165,12 @@ class QueryBuilder
 	}
 
 
-	private fun StringBuilder.appendIdentifier(name: String)
-			= append('`').append(name.escapeSqlIdentifier()).append('`')
+	private fun StringBuilder.appendIdentifier(name: String): StringBuilder {
+		if (quoteIdentifiers) append('`')
+		append(name.escapeSqlIdentifier())
+		if (quoteIdentifiers) append('`')
+		return this
+	}
 
 	private fun StringBuilder.appendLiteral(value: Any): StringBuilder {
 		// Common types (to avoid "toString" inside StringBuilder)
