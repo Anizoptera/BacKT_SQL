@@ -44,8 +44,12 @@ class QueryBuilderTest
 		checkQB("SELECT * FROM `t1` WHERE `c1`=? AND `c2`=?", listOf(123, 456)) { select().from("t1").wherep("c1", 123).wherep("c2", 456) }
 	}
 
-	private fun checkQB(expected: String, params: List<Any?>? = null, fn: QueryBuilder.()->Unit) {
-		val q = QueryBuilder().apply { fn() }
+	@Test fun quotingIdentifiers() {
+		checkQB("SELECT a.title FROM t1 a INNER JOIN t2 b ON a.id = b.id WHERE c1=123", quoteIdentifiers = false) { select("a.title").from("t1 a INNER JOIN t2 b ON a.id = b.id").where("c1", 123) }
+	}
+
+	private fun checkQB(expected: String, params: List<Any?>? = null, quoteIdentifiers: Boolean = true, fn: QueryBuilder.()->Unit) {
+		val q = QueryBuilder(quoteIdentifiers = quoteIdentifiers).apply { fn() }
 
 		assertEquals(expected, q.sb.toString())
 
