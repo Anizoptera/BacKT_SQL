@@ -10,6 +10,20 @@ class QueryBuilderTest
 	@Test fun basics() {
 		checkQB("SELECT * FROM `t1`") { select().from("t1") }
 		checkQB("SELECT * FROM `table``s_'\"mad/\\ness`") { select().from("table`s_'\"mad/\\ness") }
+
+		checkQB("INSERT INTO `t1`") { insert("t1") }
+
+		checkQB("UPDATE `t1`") { update("t1") }
+	}
+
+	@Test fun set() {
+		checkQB("INSERT INTO `t1` SET `c1`=123") { insert("t1").set("c1", 123) }
+		checkQB("INSERT INTO `t1` SET `c1`=123, `c2`='abc'") { insert("t1").set("c1", 123).set("c2", "abc") }
+
+		checkQB("INSERT INTO `t1` SET `c1`=?", listOf(123)) { insert("t1").setp("c1", 123) }
+		checkQB("INSERT INTO `t1` SET `c1`=123, `c2`=?", listOf("abc")) { insert("t1").set("c1", 123).setp("c2", "abc") }
+
+		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").set("c1", null) }
 	}
 
 	@Test fun where() {
@@ -52,6 +66,8 @@ class QueryBuilderTest
 		val q = QueryBuilder(quoteIdentifiers = quoteIdentifiers).apply { fn() }
 
 		assertEquals(expected, q.sb.toString())
+
+		assertEquals("Number of params", params?.size ?: 0, q.params?.size ?: 0)
 
 		if (params != null)
 			assertArrayEquals(params.toTypedArray(), q.paramArray)

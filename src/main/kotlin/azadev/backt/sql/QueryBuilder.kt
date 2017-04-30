@@ -14,6 +14,7 @@ class QueryBuilder(
 	var params: ArrayList<Any?>? = null
 	val paramArray: Array<Any?> get() = params?.toArray() ?: emptyArray()
 
+	var hasSet = false
 	var hasWhere = false
 	var hasOrder = false
 
@@ -63,9 +64,48 @@ class QueryBuilder(
 		return this
 	}
 
+	fun insert(table: String): QueryBuilder {
+		sb.append("INSERT INTO ").appendIdentifier(table)
+		return this
+	}
+
+	fun update(table: String): QueryBuilder {
+		sb.append("UPDATE ").appendIdentifier(table)
+		return this
+	}
+
 
 	fun from(table: String): QueryBuilder {
 		sb.append(" FROM ").appendIdentifier(table)
+		return this
+	}
+
+
+	fun set(col: String, value: Any?): QueryBuilder {
+		return when (value) {
+			null -> set0(col, "=NULL")
+			else -> set0(col, '=', value)
+		}
+	}
+	fun setp(col: String, value: Any) = set0(col, "=?").p(value)
+
+	private fun set0(col: String, eq: Any, value: Any? = null): QueryBuilder {
+		if (!hasSet) {
+			sb.append(" SET ")
+			hasSet = true
+		}
+		else sb.append(", ")
+
+		sb.appendIdentifier(col)
+
+		when (eq) {
+			is Char -> sb.append(eq)
+			is String -> sb.append(eq)
+		}
+
+		if (value != null)
+			sb.appendLiteral(value)
+
 		return this
 	}
 
