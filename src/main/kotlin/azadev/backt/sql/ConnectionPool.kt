@@ -110,14 +110,14 @@ class ConnectionPool(
 
 	inline fun use(fn: (Database)->Unit) {
 		val db = obtain()
-		fn(db)
-		release(db)
+		try { fn(db) }
+		finally { release(db) }
 	}
 
 	inline fun <T> useAndGet(fn: (Database)->T): T {
 		val db = obtain()
-		val res = fn(db)
-		release(db)
+		val res = try { fn(db) }
+		finally { release(db) }
 		return res
 	}
 }
