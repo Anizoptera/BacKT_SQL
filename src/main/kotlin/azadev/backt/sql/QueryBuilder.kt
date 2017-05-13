@@ -2,6 +2,8 @@
 
 package azadev.backt.sql
 
+import azadev.backt.sql.utils.escapeSqlIdentifier
+import azadev.backt.sql.utils.escapeSqlLiteral
 import java.sql.ResultSet
 import java.util.*
 
