@@ -151,7 +151,7 @@ class Database
 			Class.forName(driver)
 		}
 
-		fun createConnection(url: String, user: String? = null, password: String? = null): Database {
+		fun connect(url: String, user: String? = null, password: String? = null): Database {
 			val db = Database()
 			db.connect(url, user, password)
 			return db
