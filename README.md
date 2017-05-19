@@ -11,36 +11,24 @@ It also uses [KotLog](https://github.com/Anizoptera/Kotlin-Logging-Facade) for l
 
 ## Installation
 
-First of all, you need a JDBC database connector. Let's say you're using MySQL:
-
 ```gradle
-dependencies {
-	// https://mvnrepository.com/artifact/mysql/mysql-connector-java
-	compile "mysql:mysql-connector-java:5.1.42"
+repositories {
+	maven { url "http://dl.bintray.com/azadev/maven" }
+}
 
-	// ...
+dependencies {
+	compile "azadev.backt:backt_sql:0.7"
 }
 ```
 
-Now you need to include **BacKT SQL** into your application. You can easily do it using [git-subrepo](https://github.com/ingydotnet/git-subrepo). Just clone this repo in any subdirectory of your application:
-
-```
-git subrepo clone git@github.com:Anizoptera/BacKT_SQL.git <subdir>
-```
-
-Add the following into your app's `settings.gradle`:
+And of course you need a JDBC database connector. For example, MySQL Connector/J:
 
 ```gradle
-def BKT_SQL = "path/to/BacKT_SQL" // <-- modify this path
-include ":BacKT_SQL", ":BacKT_SLF4J"
-project(":BacKT_SQL").projectDir = file(BKT_SQL)
-project(":BacKT_SLF4J").projectDir = file("$BKT_SQL/modules/BacKT_SLF4J")
-```
+dependencies {
+	// ...
 
-Add a compile-time dependency in `build.gradle`:
-
-```gradle
-compile project(":BacKT_SQL")
+	compile "mysql:mysql-connector-java:5.1.42"
+}
 ```
 
 ## Usage
@@ -178,4 +166,4 @@ val userList = db.executeQuery("SELECT * FROM user").toList(::User)
 ## License
 
 This software is released under the MIT License.
-See [LICENSE.txt](LICENSE.txt) for details.
+See [LICENSE.md](LICENSE.md) for details.

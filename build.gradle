@@ -11,20 +11,82 @@ buildscript {
 	}
 	dependencies {
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+
+		// https://bintray.com/jfrog/jfrog-jars/gradle-bintray-plugin
+		classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3"
 	}
 }
 
 apply plugin: "kotlin"
 
 repositories {
+	mavenLocal()
 	jcenter()
+	maven { url "http://dl.bintray.com/azadev/maven" }
 }
 
 dependencies {
 	compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-	compile "azadev.logging:kotlog:1.0"
+	// https://github.com/Anizoptera/Kotlin-Logging-Facade
+	compile "azadev.logging:kotlog:0.8"
 
 	// http://mvnrepository.com/artifact/junit/junit
 	testCompile "junit:junit:4.12"
+}
+
+
+// PUBLISHING
+// https://docs.gradle.org/current/userguide/publishing_maven.html
+// https://github.com/bintray/gradle-bintray-plugin
+
+apply plugin: "maven-publish"
+apply plugin: "com.jfrog.bintray"
+
+def pub_artifactId = "backt_sql"
+
+task jar_source(type: Jar) {
+	from sourceSets.main.allSource
+}
+
+publishing {
+	publications {
+		"$pub_artifactId"(MavenPublication) {
+			groupId group
+			artifactId pub_artifactId
+			version version
+
+			from components.java
+
+			artifact jar_source {
+				classifier "sources"
+			}
+		}
+	}
+}
+
+bintray {
+	user = bintray_user
+	key = bintray_api_key
+	publications = [pub_artifactId]
+
+	publish = true // [Default: false] Whether version should be auto published after an upload
+	override = true // [Default: false] Whether to override version artifacts already published
+
+	pkg {
+		repo = "maven"
+		name = pub_artifactId
+
+		// Optional params used to create package if it doesn't exist
+		userOrg = "azadev"
+		licenses = ["MIT"]
+		vcsUrl = "https://github.com/Anizoptera/BacKT_SQL.git"
+		issueTrackerUrl = "https://github.com/Anizoptera/BacKT_SQL/issues"
+		websiteUrl = "https://github.com/Anizoptera/BacKT_SQL"
+		publicDownloadNumbers = false
+
+		version {
+			name = project.version
+		}
+	}
 }
