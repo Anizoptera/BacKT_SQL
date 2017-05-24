@@ -66,8 +66,8 @@ publishing {
 }
 
 bintray {
-	user = bintray_user
-	key = bintray_api_key
+	user = hasProperty("bintray_user") ? bintray_user : ""
+	key = hasProperty("bintray_api_key") ? bintray_api_key : ""
 	publications = [pub_artifactId]
 
 	publish = true // [Default: false] Whether version should be auto published after an upload
