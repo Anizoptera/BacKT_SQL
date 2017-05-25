@@ -28,6 +28,16 @@ class QueryBuilderTest
 		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").set("c1", null) }
 	}
 
+	@Test fun onDuplicateKeyUpdate() {
+		checkQB("INSERT INTO `t1` SET `c1`=111, `c2`=? ON DUPLICATE KEY UPDATE `c3`=333, `c4`=?", listOf(222, 444)) {
+			insert("t1").set("c1", 111).setp("c2", 222).onDupUpdate("c3", 333).onDupUpdatep("c4", 444)
+		}
+
+		checkQB("INSERT INTO `t1` SET `c1`=? ON DUPLICATE KEY UPDATE `c2`=NULL", listOf(111)) {
+			insert("t1").setp("c1", 111).onDupUpdate("c2", null)
+		}
+	}
+
 	@Test fun where() {
 		checkQB("SELECT * FROM `t1` WHERE `c1`=123") { select().from("t1").where("c1", 123) }
 		checkQB("SELECT * FROM `t1` WHERE `c1`='abc'") { select().from("t1").where("c1", "abc") }

@@ -18,6 +18,7 @@ class QueryBuilder(
 
 	var hasSet = false
 	var hasWhere = false
+	var hasOnDupUpd = false
 	var hasOrder = false
 
 
@@ -84,35 +85,6 @@ class QueryBuilder(
 
 	fun from(table: String): QueryBuilder {
 		sb.append(" FROM ").appendIdentifier(table)
-		return this
-	}
-
-
-	fun set(col: String, value: Any?): QueryBuilder {
-		return when (value) {
-			null -> set0(col, "=NULL")
-			else -> set0(col, '=', value)
-		}
-	}
-	fun setp(col: String, value: Any) = set0(col, "=?").p(value)
-
-	private fun set0(col: String, eq: Any, value: Any? = null): QueryBuilder {
-		if (!hasSet) {
-			sb.append(" SET ")
-			hasSet = true
-		}
-		else sb.append(", ")
-
-		sb.appendIdentifier(col)
-
-		when (eq) {
-			is Char -> sb.append(eq)
-			is String -> sb.append(eq)
-		}
-
-		if (value != null)
-			sb.appendLiteral(value)
-
 		return this
 	}
 
@@ -208,6 +180,56 @@ class QueryBuilder(
 
 	fun limit(num: Int): QueryBuilder {
 		sb.append(" LIMIT ").append(num)
+		return this
+	}
+
+
+	fun set(col: String, value: Any?): QueryBuilder {
+		return when (value) {
+			null -> set0(col, "=NULL")
+			else -> set0(col, '=', value)
+		}
+	}
+	fun setp(col: String, value: Any) = set0(col, "=?").p(value)
+
+	private fun set0(col: String, eq: Any, value: Any? = null): QueryBuilder {
+		appendColValPair(col, eq, value, if (hasSet) ", " else " SET ")
+		hasSet = true
+		return this
+	}
+
+
+	fun onDupUpdate(col: String, value: Any?): QueryBuilder {
+		return when (value) {
+			null -> onDupUpdate0(col, "=NULL")
+			else -> onDupUpdate0(col, '=', value)
+		}
+	}
+	fun onDupUpdatep(col: String, value: Any) = onDupUpdate0(col, "=?").p(value)
+
+	private fun onDupUpdate0(col: String, eq: Any, value: Any? = null): QueryBuilder {
+		appendColValPair(col, eq, value, if (hasOnDupUpd) ", " else " ON DUPLICATE KEY UPDATE ")
+		hasOnDupUpd = true
+		return this
+	}
+
+
+	private fun appendColValPair(col: String, eq: Any, value: Any? = null, prefix: Any): QueryBuilder {
+		when (prefix) {
+			is Char -> sb.append(prefix)
+			is String -> sb.append(prefix)
+		}
+
+		sb.appendIdentifier(col)
+
+		when (eq) {
+			is Char -> sb.append(eq)
+			is String -> sb.append(eq)
+		}
+
+		if (value != null)
+			sb.appendLiteral(value)
+
 		return this
 	}
 
