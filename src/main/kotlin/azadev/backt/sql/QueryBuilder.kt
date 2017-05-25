@@ -76,6 +76,11 @@ class QueryBuilder(
 		return this
 	}
 
+	fun delete(): QueryBuilder {
+		sb.append("DELETE")
+		return this
+	}
+
 
 	fun from(table: String): QueryBuilder {
 		sb.append(" FROM ").appendIdentifier(table)

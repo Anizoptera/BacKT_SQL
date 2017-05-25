@@ -14,6 +14,8 @@ class QueryBuilderTest
 		checkQB("INSERT INTO `t1`") { insert("t1") }
 
 		checkQB("UPDATE `t1`") { update("t1") }
+
+		checkQB("DELETE FROM `t1`") { delete().from("t1") }
 	}
 
 	@Test fun set() {
