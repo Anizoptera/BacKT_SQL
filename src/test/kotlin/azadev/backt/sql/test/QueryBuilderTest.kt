@@ -26,6 +26,7 @@ class QueryBuilderTest
 		checkQB("INSERT INTO `t1` SET `c1`=123, `c2`=?", listOf("abc")) { insert("t1").set("c1", 123).setp("c2", "abc") }
 
 		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").set("c1", null) }
+		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").setp("c1", null) }
 
 		// TODO: Figure out the way to use functions
 //		checkQB("UPDATE `t1` SET `c1`=UNIX_TIMESTAMP()") { update("t1").set("c1", "UNIX_TIMESTAMP()") }
@@ -36,8 +37,8 @@ class QueryBuilderTest
 			insert("t1").set("c1", 111).setp("c2", 222).onDupUpdate("c3", 333).onDupUpdatep("c4", 444)
 		}
 
-		checkQB("INSERT INTO `t1` SET `c1`=? ON DUPLICATE KEY UPDATE `c2`=NULL", listOf(111)) {
-			insert("t1").setp("c1", 111).onDupUpdate("c2", null)
+		checkQB("INSERT INTO `t1` SET `c1`=? ON DUPLICATE KEY UPDATE `c2`=NULL, `c3`=NULL", listOf(111)) {
+			insert("t1").setp("c1", 111).onDupUpdate("c2", null).onDupUpdatep("c3", null)
 		}
 	}
 

@@ -190,7 +190,12 @@ class QueryBuilder(
 			else -> set0(col, '=', value)
 		}
 	}
-	fun setp(col: String, value: Any) = set0(col, "=?").p(value)
+	fun setp(col: String, value: Any?): QueryBuilder {
+		return when (value) {
+			null -> set(col, null)
+			else -> set0(col, "=?").p(value)
+		}
+	}
 
 	private fun set0(col: String, eq: Any, value: Any? = null): QueryBuilder {
 		appendColValPair(col, eq, value, if (hasSet) ", " else " SET ")
@@ -205,7 +210,12 @@ class QueryBuilder(
 			else -> onDupUpdate0(col, '=', value)
 		}
 	}
-	fun onDupUpdatep(col: String, value: Any) = onDupUpdate0(col, "=?").p(value)
+	fun onDupUpdatep(col: String, value: Any?): QueryBuilder {
+		return when (value) {
+			null -> onDupUpdate(col, value)
+			else -> onDupUpdate0(col, "=?").p(value)
+		}
+	}
 
 	private fun onDupUpdate0(col: String, eq: Any, value: Any? = null): QueryBuilder {
 		appendColValPair(col, eq, value, if (hasOnDupUpd) ", " else " ON DUPLICATE KEY UPDATE ")
