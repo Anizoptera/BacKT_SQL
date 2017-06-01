@@ -26,6 +26,9 @@ class QueryBuilderTest
 		checkQB("INSERT INTO `t1` SET `c1`=123, `c2`=?", listOf("abc")) { insert("t1").set("c1", 123).setp("c2", "abc") }
 
 		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").set("c1", null) }
+
+		// TODO: Figure out the way to use functions
+//		checkQB("UPDATE `t1` SET `c1`=UNIX_TIMESTAMP()") { update("t1").set("c1", "UNIX_TIMESTAMP()") }
 	}
 
 	@Test fun onDuplicateKeyUpdate() {
