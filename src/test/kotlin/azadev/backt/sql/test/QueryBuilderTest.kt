@@ -28,6 +28,8 @@ class QueryBuilderTest
 		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").set("c1", null) }
 		checkQB("INSERT INTO `t1` SET `c1`=NULL") { insert("t1").setp("c1", null) }
 
+		checkQB("INSERT INTO `t1` SET `c1`=1, `c2`=0, `c3`=?", listOf(false)) { insert("t1").set("c1", true).set("c2", false).setp("c3", false) }
+
 		// TODO: Figure out the way to use functions
 //		checkQB("UPDATE `t1` SET `c1`=UNIX_TIMESTAMP()") { update("t1").set("c1", "UNIX_TIMESTAMP()") }
 	}
