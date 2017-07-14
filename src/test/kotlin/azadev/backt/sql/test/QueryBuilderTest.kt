@@ -47,6 +47,7 @@ class QueryBuilderTest
 	@Test fun where() {
 		checkQB("SELECT * FROM `t1` WHERE `c1`=123") { select().from("t1").where("c1", 123) }
 		checkQB("SELECT * FROM `t1` WHERE `c1`='abc'") { select().from("t1").where("c1", "abc") }
+		checkQB("SELECT * FROM `t1` WHERE `c1`=1") { select().from("t1").where("c1", true) }
 		checkQB("SELECT * FROM `t1` WHERE `c1`=?", listOf(123)) { select().from("t1").wherep("c1", 123) }
 
 		checkQB("SELECT * FROM `t1` WHERE `c1`<>'a\\nb\\'c'") { select().from("t1").whereNot("c1", "a\nb'c") }
@@ -73,7 +74,7 @@ class QueryBuilderTest
 
 	@Test fun where_severalConditions() {
 		checkQB("SELECT * FROM `t1` WHERE `c1`=123 AND `c2`=456") { select().from("t1").where("c1", 123).where("c2", 456) }
-		checkQB("SELECT * FROM `t1` WHERE `c1`=? AND `c2`=?", listOf(123, 456)) { select().from("t1").wherep("c1", 123).wherep("c2", 456) }
+		checkQB("SELECT * FROM `t1` WHERE `c1`=? AND `c2`=? AND `c3`=0", listOf(123, 456)) { select().from("t1").wherep("c1", 123).wherep("c2", 456).where("c3", false) }
 	}
 
 	@Test fun quotingIdentifiers() {
