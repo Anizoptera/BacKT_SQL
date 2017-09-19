@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-	compile "azadev.backt:backt_sql:0.7"
+	compile "azadev.backt:backt_sql:0.7.1"
 }
 ```
 
